@@ -17,7 +17,7 @@ npx hardhat compile # to compile Smart Contract
 ## Run
 
 ```shell
-npx hardhat test --network previewnet
+cd scripts
+node xxxxxx.js 
 ```
-
 
