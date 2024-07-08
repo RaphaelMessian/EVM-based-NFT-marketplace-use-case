@@ -83,7 +83,58 @@ async function createNFT(client, treasuryId, privateKey) {
   let tokenCreateRx = await tokenCreateSubmit.getReceipt(client);
   let tokenId = tokenCreateRx.tokenId;
   return tokenId;
-}    
+}   
+
+async function createTokenWithFees(client, treasuryId, privateKey, collectorFeeId, collectorFeeKey, isFixedFee, isFractionalFee) {
+
+  let fractionalFee;
+  let fixedFee;
+
+  if(isFixedFee) {
+  fixedFee = new CustomFixedFee()
+    .setAmount(1e8)
+    .setFeeCollectorAccountId(collectorFeeId)
+    .setAllCollectorsAreExempt(false);
+  }
+  if(isFractionalFee) {
+  fractionalFee = new CustomFractionalFee()
+    .setFeeCollectorAccountId(collectorFeeId)
+    .setNumerator(1)
+    .setDenominator(10)
+    .setMin(1e8)
+    .setMax(10e8)
+  }
+
+  let tokenCreateTx = await new TokenCreateTransaction()
+    .setTokenName("MyToken")
+    .setTokenSymbol("MYT")
+    .setTokenType(TokenType.FungibleCommon)
+    .setDecimals(8)
+    .setInitialSupply(0)
+    .setTreasuryAccountId(treasuryId)
+    .setSupplyType(TokenSupplyType.Infinite)
+    .setSupplyKey(PrivateKey.fromStringECDSA(privateKey))
+    .setAdminKey(PrivateKey.fromStringECDSA(privateKey))
+    if(isFixedFee) {
+      tokenCreateTx.setCustomFees([fixedFee]);
+    };
+    if(isFractionalFee) {
+      tokenCreateTx.setCustomFees([fractionalFee]);
+    };
+    if(isFixedFee && isFractionalFee) {
+      tokenCreateTx.setCustomFees([fixedFee, fractionalFee]);
+    };
+    tokenCreateTx.setMaxTransactionFee(new Hbar(40))
+    tokenCreateTx.freezeWith(client);
+
+  let signTx = await tokenCreateTx.sign(PrivateKey.fromStringECDSA(collectorFeeKey));
+  let tokenCreateSubmit = await signTx.execute(client);
+  // console.log("- Executed");
+  let tokenCreateRx = await tokenCreateSubmit.getReceipt(client);
+  let tokenId = tokenCreateRx.tokenId;
+  return tokenId;
+}
+
 
 async function createNFTWithFees(client, treasuryId, privateKey, collectorFeeId, isRoyalties, isFixedFee) {
 
@@ -207,5 +258,6 @@ module.exports = {
     createNFTWithFees,
     createToken,
     transferHbar,
-    contractInfoFromMirrorNode
+    contractInfoFromMirrorNode,
+    createTokenWithFees
 }

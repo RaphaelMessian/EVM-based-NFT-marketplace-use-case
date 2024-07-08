@@ -1,5 +1,5 @@
-//The purpose of this script is to demonstrate how to create a fungible token with both fees using the precompiled contract
-//The token is created with a fixed fee of 1 hbars for the feeCollector account and 10% fractionnal fee for the treasury, the treasury is the contract and the contract is the supply key
+//The purpose of this script is to demonstrate how to create a fungible token with fractional fee using the precompiled contract
+//The token is created with a fractional fee of 80% for the treasury account, the treasury is the contract and the contract is the supply key
 const {ethers} = require("hardhat");
 
 async function main() {
@@ -20,12 +20,12 @@ async function main() {
     //The token as an initial supply of 0 tokens a max supply of 10000 tokens and 8 decimals
     const createTokenTx = await tokenCreateContract.createFungibleTokenWithCustomFeePublic(
       tokenCreateAddress, // treasury
-      feeCollector.address, // feeCollector
+      feeCollector.address, // feeCollector for fixed fee
       true, // isFractional
-      true, // isFixed
-      1e8,  // amount for fixedFee
+      false, // isFixed
+      0,  // amount for fixedFee
       '0x0000000000000000000000000000000000000000', //address for token of fixedFee, if set to 0x0, the fee will be in hbars
-      true, // if true the fee will be in Hbar
+      false, // if true the fixed fee will be in Hbar
       false, // if true use the current token for fixed fee
 
       {
@@ -102,11 +102,8 @@ async function main() {
     const [owner, spender, allowance] = event.args;
     console.log("Owner: ", owner, " Spender: ", spender, " Allowance: ", allowance.toString());
 
-    //Balance of the feeCollector and contract before transfer
-    const feeCollectorBalanceBeforeTransfer = await ethers.provider.getBalance(feeCollector.address);
-    console.log("Balance of feeCollector before the Transfer", feeCollectorBalanceBeforeTransfer.toString());
     const contractTokenBalanceBeforeTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
-    console.log("Token balance of contract before the Transfer", contractTokenBalanceBeforeTransfer.toString());
+    console.log("Balance of feeCollector before the Transfer", contractTokenBalanceBeforeTransfer.toString());
 
     //We can now transfer tokens from the deployer to another account
     const transferTokenToOWTx = await tokenCreateContract.transferTokensPublic(
@@ -119,18 +116,14 @@ async function main() {
     );
     console.log("Token transfer tx hash", transferTokenToOWTx.hash);
 
-    //Balance of the otherWallet should be 100
-    const balanceOfOW = await tokenInterface.balanceOf(otherWallet.address);
-    console.log("Balance of deployer", balanceOfOW.toString());
+     //Balance of the otherWallet should be 100 minus 10% of fractional fee
+     const balanceOfOW = await tokenInterface.balanceOf(otherWallet.address);
+     console.log("Balance of deployer", balanceOfOW.toString());
 
-    //Balance should be increase by 1Hbar
-    const feeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(feeCollector.address);
-    console.log("Hbar balance of feeCollector after the Transfer", feeCollectorBalanceAfterTransfer.toString());
+     //Balance should be 10% of the amount transferred
+     const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
+     console.log("Balance of feeCollector after the Transfer", contractTokenBalanceAfterTransfer.toString());
 
-    //Balance should be 10% of the amount transferred
-    const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
-    console.log("Token balance of contract after the Transfer", contractTokenBalanceAfterTransfer.toString());
- 
 }
 
 main();

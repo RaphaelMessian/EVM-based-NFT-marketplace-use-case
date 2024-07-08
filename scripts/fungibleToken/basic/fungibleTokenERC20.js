@@ -1,4 +1,4 @@
-//The purpose of this script is to demonstrate who to create - mint - transfer and listen to events created by HTS using precompiled contract.
+//The purpose of this script is to demonstrate who to create - mint - transfer and listen to events.
 const {ethers} = require("hardhat");
 const { createToken, mintToken } = require("../../utils.js");
 const { Client, PrivateKey } = require("@hashgraph/sdk");
