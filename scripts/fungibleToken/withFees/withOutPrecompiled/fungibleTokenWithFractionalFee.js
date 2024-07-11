@@ -33,7 +33,7 @@ async function main() {
     console.log("Balance of deployer", balanceOfDeployer.toString());
 
     //Since the deployer is defined as the supplykey, we can mint tokens
-    const mintTokenTx = await mintToken(tokenId, client, 100, {gasLimit: 1_000_000});
+    const mintTokenTx = await mintToken(tokenId, client, 100);
     console.log("Minted 100 tokens to treasury", mintTokenTx.hash);
 
     await delay(5000);
@@ -85,6 +85,10 @@ async function main() {
     );
     console.log("Token associated to account tx hash", associateTokenWithOtherWalletTx.hash);
 
+    //Since we want to use the transferFromERC20 function, we need to approve contract to spend the tokens
+    const approveContract = await tokenCreateContract.approveFromERC20(tokenAddress, otherWallet.address, 100e8, {gasLimit: 2_000_000});
+    console.log("Approval tx hash", approveContract.hash);
+
     //Balance of the feeCollector and contract before transfer
     const feeCollectorBalanceBeforeTransfer = await ethers.provider.getBalance(feeCollector.address);
     console.log("Balance of feeCollector before the Transfer", feeCollectorBalanceBeforeTransfer.toString());
@@ -92,12 +96,12 @@ async function main() {
     console.log("Token balance of contract before the Transfer", contractTokenBalanceBeforeTransfer.toString());
 
     //We can now transfer tokens from the treasury to another account
-    const secondTransferTokenTx = await tokenCreateContract.transferTokensPublic(
-      tokenAddress,
-      [tokenCreateAddress, otherWallet.address],
-      [-100e8, 100e8],
+    const secondTransferTokenTx = await tokenInterface.connect(otherWallet).transferFrom(
+      tokenCreateAddress,
+      otherWallet.address,
+      100e8,
       {
-        gasLimit: 1_000_000,
+        gasLimit: 2_000_000,
       }
     );
     console.log("Token transfer tx hash", secondTransferTokenTx.hash);

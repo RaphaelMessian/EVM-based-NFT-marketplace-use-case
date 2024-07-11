@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import "../precompile/hedera-token-service/HederaTokenService.sol";
 import "../precompile/hedera-token-service/ExpiryHelper.sol";
 import "../precompile/hedera-token-service/KeyHelper.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
 
@@ -78,7 +79,7 @@ contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
 
         IHederaTokenService.RoyaltyFee[] memory royaltyFees = new IHederaTokenService.RoyaltyFee[](1);
         if(isRoyaltyFee) {
-             royaltyFees[0] = IHederaTokenService.RoyaltyFee(1, 10, 1e4, address(0), true, treasury);
+             royaltyFees[0] = IHederaTokenService.RoyaltyFee(1, 10, feeAmount, fixedFeeTokenAddress, useHbarsForPayment, treasury);
         } else {
              royaltyFees = new IHederaTokenService.RoyaltyFee[](0);
         }
@@ -153,5 +154,14 @@ contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
         if (responseCode != HederaResponseCodes.SUCCESS) {
             revert();
         }
+    }
+
+    
+    function transferFromERC721(address token, address sender, address recipient, uint256 amount) external {
+        IERC721(token).transferFrom(sender, recipient, amount);
+    }
+
+    function approveFromERC721(address token, address spender, uint256 amount) external {
+         IERC721(token).approve(spender, amount);
     }
 }

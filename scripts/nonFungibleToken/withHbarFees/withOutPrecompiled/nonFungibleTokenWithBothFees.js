@@ -91,16 +91,9 @@ async function main() {
       );
     console.log("Token associated to account tx hash", associateTokenWithOWTx.hash);
 
-    //Approve the otherWallet to transfer the NFT
-    const approveTx = await tokenCreateContract.approveNFTPublic(
-      tokenAddress,
-      otherWallet.address,
-      1,
-      {
-        gasLimit: 1_000_000,
-      }
-    )
-    console.log("Token approved tx hash", approveTx.hash);
+    //Since we want to use the transferFrom function, we need to approve the otherWallet to spend the tokens
+    const approveContract = await tokenCreateContract.approveFromERC721(tokenAddress, otherWallet.address, 1, {gasLimit: 2_000_000});
+    console.log("Approval tx hash", approveContract.hash);
 
     //We need to transfer some hbar to the contract so that he can pay the fixed fee
     const transferHbarTx = await transferHbar(client, process.env.OPERATOR_ID, tokenCreateAddress, 5);

@@ -14,9 +14,9 @@ async function main() {
     const tokenCreateContract = await tokenCreateFactory.deploy(
       {gasLimit: 1_000_000}
       );
+    //const tokenCreateContract = await ethers.getContractAt("FungiblePrecompiled", "0xd19dE3b36bC118b0B3746BE9cee054fF9179063B");
     const tokenCreateAddress = await tokenCreateContract.getAddress();
     console.log("TokenCreateContract deployed to:", tokenCreateAddress);
-    //const tokenCreateCustomContract = await ethers.getContractAt("FungiblePrecompiled", "0x1f61337E6b8837E75F64466b9618C986f3e571B9");
 
     //Create a fungible token with hedera sdk, you need to instantiate a client to correct network
     const client = Client.forTestnet();
@@ -33,7 +33,7 @@ async function main() {
     console.log("Balance of deployer", balanceOfDeployer.toString());
 
     //Since the deployer is defined as the supplykey, we can mint tokens
-    const mintTokenTx = await mintToken(tokenId, client, 100, {gasLimit: 1_000_000});
+    const mintTokenTx = await mintToken(tokenId, client, 100);
     console.log("Minted 100 tokens to treasury", mintTokenTx.hash);
 
     await delay(5000);
@@ -51,11 +51,11 @@ async function main() {
     );
     console.log("Token associated to contract tx hash", associateTokenTx.hash);
 
-    //Check the balance of the otherWallet
+    //Check the balance of the contract before the transfer
     const balanceOfContract = await tokenInterface.balanceOf(tokenCreateAddress);
     console.log("Balance of Contract before transfer", balanceOfContract.toString());
 
-    //We can now transfer tokens from the treasury to another account
+    //We can now transfer tokens from the treasury to the contract
     const transferTokenTx = await tokenInterface.transfer(
     tokenCreateAddress,
     100e8,
@@ -85,8 +85,12 @@ async function main() {
     );
     console.log("Token associated to account tx hash", associateTokenWithOtherWalletTx.hash);
 
+    //Since we want to use the transferFromERC20 function, we need to approve contract to spend the tokens
+    const approveContract = await tokenCreateContract.approveFromERC20(tokenAddress, otherWallet.address, 100e8, {gasLimit: 2_000_000});
+    console.log("Approval tx hash", approveContract.hash);
+
     //We need to transfer some hbar to the contract so that he can pay the fixed fee
-    const transferHbarTx = await transferHbar(client, process.env.OPERATOR_ID, tokenCreateAddress, 5);
+    await transferHbar(client, process.env.OPERATOR_ID, tokenCreateAddress, 5);
 
     //Balance of the feeCollector and contract before transfer
     const feeCollectorBalanceBeforeTransfer = await ethers.provider.getBalance(feeCollector.address);
@@ -95,12 +99,12 @@ async function main() {
     console.log("Token balance of contract before the Transfer", contractTokenBalanceBeforeTransfer.toString());
 
     //We can now transfer tokens from the treasury to another account
-    const secondTransferTokenTx = await tokenCreateContract.transferTokensPublic(
-      tokenAddress,
-      [tokenCreateAddress, otherWallet.address],
-      [-100e8, 100e8],
+    const secondTransferTokenTx = await tokenInterface.connect(otherWallet).transferFrom(
+      tokenCreateAddress,
+      otherWallet.address,
+      100e8,
       {
-        gasLimit: 1_000_000,
+        gasLimit: 2_000_000,
       }
     );
     console.log("Token transfer tx hash", secondTransferTokenTx.hash);
@@ -116,7 +120,6 @@ async function main() {
     //Balance of the fee collector should be 10% of the amount transferred
     const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(feeCollector.address);
     console.log("Token balance of fee collector after the transfer", contractTokenBalanceAfterTransfer.toString());
-
  
 }
 

@@ -3,10 +3,12 @@ pragma solidity >=0.5.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import "../precompile/hedera-token-service/HederaTokenService.sol";
+import "../precompile/hedera-account-service/HederaAccountService.sol";
 import "../precompile/hedera-token-service/ExpiryHelper.sol";
 import "../precompile/hedera-token-service/KeyHelper.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract FungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
+contract FungiblePrecompiled is HederaTokenService, HederaAccountService, ExpiryHelper, KeyHelper {
 
     string name = "tokenName";
     string symbol = "tokenSymbol";
@@ -132,5 +134,17 @@ contract FungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
         if (responseCode != HederaResponseCodes.SUCCESS) {
             revert ();
         }
+    }
+
+    function transferFromERC20(address token, address sender, address recipient, uint256 amount) external returns (bool) {
+        return IERC20(token).transferFrom(sender, recipient, amount);
+    }
+
+    function approveFromERC20(address token, address spender, uint256 amount) external returns (bool) {
+        return IERC20(token).approve(spender, amount);
+    }
+
+    function approveHbarTransfer( address spender, int256 amount) external returns (int) {
+        return HederaAccountService.hbarApprove(address(this), spender, amount);
     }
 }

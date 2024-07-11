@@ -32,17 +32,6 @@ async function transferHbar(client, senderId, receiverId, amount) {
 }
 
 async function createToken(client, treasuryId, privateKey) {
-  // const customFee = new CustomFixedFee()
-  //   .setAmount(100000000)
-  //   .setFeeCollectorAccountId(collectorFeeId)
-  //   .setAllCollectorsAreExempt(false);
-  
-  // const customFee2 = new CustomFractionalFee()
-  //   .setFeeCollectorAccountId(collectorFeeId)
-  //   .setNumerator(1)
-  //   .setDenominator(10)
-  //   .setMin(1)
-  //   .setMax(10)
 
   let tokenCreateTx = await new TokenCreateTransaction()
     .setTokenName("MyToken")
@@ -85,7 +74,7 @@ async function createNFT(client, treasuryId, privateKey) {
   return tokenId;
 }   
 
-async function createTokenWithFees(client, treasuryId, privateKey, collectorFeeId, collectorFeeKey, isFixedFee, isFractionalFee) {
+async function createTokenWithFees(client, treasuryId, privateKey, collectorFeeId, collectorFeeKey, fixFeeToken, isFixedFee, isFractionalFee) {
 
   let fractionalFee;
   let fixedFee;
@@ -93,6 +82,7 @@ async function createTokenWithFees(client, treasuryId, privateKey, collectorFeeI
   if(isFixedFee) {
   fixedFee = new CustomFixedFee()
     .setAmount(1e8)
+    .denominatingTokenId(fixFeeToken)
     .setFeeCollectorAccountId(collectorFeeId)
     .setAllCollectorsAreExempt(false);
   }
@@ -136,15 +126,16 @@ async function createTokenWithFees(client, treasuryId, privateKey, collectorFeeI
 }
 
 
-async function createNFTWithFees(client, treasuryId, privateKey, collectorFeeId, isRoyalties, isFixedFee) {
+async function createNFTWithFees(client, treasuryId, privateKey, collectorFeeId, fixFeeToken, isRoyalties, isFixedFee) {
 
   let royaltiesFee;
   let fixedFee;
 
   if(isRoyalties) {
     const fixedFeeForRoyalties = new CustomFixedFee()
-      .setAmount(10000)
+      .setAmount(1)
       .setFeeCollectorAccountId(collectorFeeId)
+      .setDenominatingTokenId(fixFeeToken)
       .setAllCollectorsAreExempt(false);
 
     royaltiesFee = new CustomRoyaltyFee()
@@ -156,8 +147,9 @@ async function createNFTWithFees(client, treasuryId, privateKey, collectorFeeId,
 
   if(isFixedFee) {
     fixedFee = new CustomFixedFee()
-      .setAmount(100000000)
+      .setAmount(1)
       .setFeeCollectorAccountId(collectorFeeId)
+      .setDenominatingTokenId(fixFeeToken)
       .setAllCollectorsAreExempt(false);
   }
 

@@ -20,7 +20,7 @@ async function main() {
     const tokenInterface = await ethers.getContractAt("IERC20", tokenAddress);
 
     //Since the deployer is defined as the supplykey, we can mint tokens
-    const mintTokenTx = await mintToken(tokenId, client, 100, {gasLimit: 1_000_000});
+    const mintTokenTx = await mintToken(tokenId, client, 100);
     console.log("Minted 100 tokens to treasury", mintTokenTx.hash);
 
     //We can transfer tokens from the treasury to another account, first the account need to associate the token
