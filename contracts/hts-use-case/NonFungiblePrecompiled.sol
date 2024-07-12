@@ -21,6 +21,29 @@ contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
     event CreatedToken(address tokenAddress);
     event MintedToken(int64 newTotalSupply, int64[] serialNumbers);
 
+    struct FixFeeParams {
+        address feeCollector;
+        bool isFractionalFee;
+        bool isFixedFee;
+        int64 feeAmount;
+        address fixedFeeTokenAddress;
+        bool useHbarsForPayment;
+        bool useCurrentTokenForPayment;
+        bool isMultipleFixedFee;
+        address feeCollector2;
+        address secondFixedFeeTokenAddress;
+        bool useHbarsForPaymentSecondFixFee;
+        bool useCurrentTokenForPaymentSecondFixFee;
+    }
+
+    struct RoyaltyFeeParams {
+        address feeCollector;
+        bool isRoyaltyFee;
+        int64 feeAmount;
+        address fixedFeeTokenAddress;
+        bool useHbarsForPayment;
+    }
+
     function createNonFungibleTokenPublic(
         address treasury
     ) public payable {
@@ -80,6 +103,57 @@ contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
         IHederaTokenService.RoyaltyFee[] memory royaltyFees = new IHederaTokenService.RoyaltyFee[](1);
         if(isRoyaltyFee) {
              royaltyFees[0] = IHederaTokenService.RoyaltyFee(1, 10, feeAmount, fixedFeeTokenAddress, useHbarsForPayment, treasury);
+        } else {
+             royaltyFees = new IHederaTokenService.RoyaltyFee[](0);
+        }
+
+        (int responseCode, address tokenAddress) =
+        HederaTokenService.createNonFungibleTokenWithCustomFees(token, fixedFees, royaltyFees);
+
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert ();
+        }
+
+        emit CreatedToken(tokenAddress);
+    }
+
+    function createNonFungibleTokenWithMultipleCustomFeesPublic(
+        address treasury,
+        FixFeeParams memory params,
+        RoyaltyFeeParams memory royaltyParams
+    ) public payable {
+        IHederaTokenService.TokenKey[] memory keys = new IHederaTokenService.TokenKey[](2);
+        keys[0] = getSingleKey(KeyType.ADMIN, KeyValueType.INHERIT_ACCOUNT_KEY, bytes(""));
+        keys[1] = getSingleKey(KeyType.SUPPLY, KeyValueType.INHERIT_ACCOUNT_KEY, bytes(""));
+
+
+        IHederaTokenService.Expiry memory expiry = IHederaTokenService.Expiry(
+            0, treasury, 8000000
+        );
+
+        IHederaTokenService.HederaToken memory token = IHederaTokenService.HederaToken(
+            name, symbol, treasury, memo, true, maxSupply, freezeDefaultStatus, keys, expiry
+        );
+
+        IHederaTokenService.FixedFee[] memory fixedFees = new IHederaTokenService.FixedFee[](2);
+
+        if(params.isFixedFee) {
+            if(params.isMultipleFixedFee) {
+                fixedFees = new IHederaTokenService.FixedFee[](2);
+            } else {
+                fixedFees = new IHederaTokenService.FixedFee[](1);
+            }
+        fixedFees[0] = IHederaTokenService.FixedFee(params.feeAmount, params.fixedFeeTokenAddress, params.useHbarsForPayment, params.useCurrentTokenForPayment, params.feeCollector);
+            if(params.isMultipleFixedFee) {
+        fixedFees[1] = IHederaTokenService.FixedFee(params.feeAmount, params.secondFixedFeeTokenAddress, params.useHbarsForPaymentSecondFixFee, params.useCurrentTokenForPaymentSecondFixFee, params.feeCollector2);
+            }
+        } else {
+            fixedFees = new IHederaTokenService.FixedFee[](0);
+        }
+
+        IHederaTokenService.RoyaltyFee[] memory royaltyFees = new IHederaTokenService.RoyaltyFee[](1);
+        if(royaltyParams.isRoyaltyFee) {
+             royaltyFees[0] = IHederaTokenService.RoyaltyFee(1, 10, royaltyParams.feeAmount, royaltyParams.fixedFeeTokenAddress, royaltyParams.useHbarsForPayment, royaltyParams.feeCollector);
         } else {
              royaltyFees = new IHederaTokenService.RoyaltyFee[](0);
         }

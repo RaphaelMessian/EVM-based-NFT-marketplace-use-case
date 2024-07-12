@@ -1,7 +1,7 @@
 //The purpose of this script is to demonstrate how to create a fungible token with fix both fees using the IERC20
 //The token is created with a fixed fee of 1 hbars for the feeCollector account and a fractional fee of 10%
 const {ethers} = require("hardhat");
-const { createTokenWithFees, mintToken, transferHbar } = require("../../../utils");
+const { createTokenWithFees, mintToken, transferHbar, createToken } = require("../../../utils");
 const { Client, PrivateKey } = require("@hashgraph/sdk");
 
 async function main() {
@@ -21,8 +21,27 @@ async function main() {
     //Create a fungible token with hedera sdk, you need to instantiate a client to correct network
     const client = Client.forTestnet();
     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
-    //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
-    const tokenId = await createTokenWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, process.env.FEE_COLLECTOR_KEY, true, true);
+    //Create a fungible token with hashgraph sdk for fix fee
+    const tokenIdForFixedfee = await createToken(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY);
+    const tokenAddressForFixedFee = '0x' + tokenIdForFixedfee.toSolidityAddress();
+    console.log("Token created at address", tokenAddressForFixedFee);
+
+    //Since the deployer is defined as the supplykey, we can mint tokens
+    const mintFTokenTx = await mintToken(tokenIdForFixedfee, client, 100);
+    console.log("Minted 100 tokens to treasury", mintFTokenTx.hash);
+
+    //This token need to be associated with the fee collector account in order to create the token
+    //We will use the IHRC719 so that an account can associate a token using a smart contract
+    const associateTokenInterfaceFixFee = await ethers.getContractAt("IHRC719", tokenAddressForFixedFee)
+    const associateFTokenWithFeeCollectorTx = await associateTokenInterfaceFixFee.connect(feeCollector).associate(
+        {
+          gasLimit: 1_000_000,
+        }
+      );
+    console.log("Token associated to account tx hash", associateFTokenWithFeeCollectorTx.hash);
+
+    //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury and fixFee token as fixFee
+    const tokenId = await createTokenWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, process.env.FEE_COLLECTOR_KEY, tokenIdForFixedfee, true, true);
     const tokenAddress = '0x' + tokenId.toSolidityAddress();
     console.log("Token created at address", tokenAddress);
 
@@ -50,6 +69,17 @@ async function main() {
       }
     );
     console.log("Token associated to contract tx hash", associateTokenTx.hash);
+  
+    //We can transfer tokens from the treasury to the contract, first the contract need to associate the NFT
+    //We will use the associate function in the contract to associate the token with it
+    const associateFixFeeTokenTx = await tokenCreateContract.associateTokenPublic(
+      tokenCreateAddress,
+      tokenAddressForFixedFee,
+      {
+        gasLimit: 1_000_000,
+      }
+    );
+    console.log("Token associated to contract tx hash", associateFixFeeTokenTx.hash);
 
     //Check the balance of the contract before the transfer
     const balanceOfContract = await tokenInterface.balanceOf(tokenCreateAddress);
@@ -89,14 +119,19 @@ async function main() {
     const approveContract = await tokenCreateContract.approveFromERC20(tokenAddress, otherWallet.address, 100e8, {gasLimit: 2_000_000});
     console.log("Approval tx hash", approveContract.hash);
 
-    //We need to transfer some hbar to the contract so that he can pay the fixed fee
-    await transferHbar(client, process.env.OPERATOR_ID, tokenCreateAddress, 5);
+    // //We need to transfer some hbar to the contract so that he can pay the fixed fee
+    // await transferHbar(client, process.env.OPERATOR_ID, tokenCreateAddress, 5);
 
     //Balance of the feeCollector and contract before transfer
     const feeCollectorBalanceBeforeTransfer = await ethers.provider.getBalance(feeCollector.address);
     console.log("Balance of feeCollector before the Transfer", feeCollectorBalanceBeforeTransfer.toString());
     const contractTokenBalanceBeforeTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
     console.log("Token balance of contract before the Transfer", contractTokenBalanceBeforeTransfer.toString());
+
+    const erc20Interface = await ethers.getContractAt("IERC20", tokenAddressForFixedFee);
+    //Transfer some fixfee token to the contract to pay for the fix fee
+    const tranferFixFeeTokentoContract = await erc20Interface.transfer(tokenCreateAddress, 1e8, {gasLimit: 1_000_000});
+    console.log("Transfer fixed fee token tx hash", tranferFixFeeTokentoContract.hash);
 
     //We can now transfer tokens from the treasury to another account
     const secondTransferTokenTx = await tokenInterface.connect(otherWallet).transferFrom(

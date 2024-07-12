@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../precompile/hedera-account-service/HederaAccountService.sol";
 import "../precompile/hedera-token-service/HederaTokenService.sol";
 
-contract ApprovalContract is HederaAccountService, HederaTokenService {
+contract ContracApproval is HederaAccountService, HederaTokenService {
     event ResponseCode(int responseCode);
     event HbarAllowance(address owner, address spender, int256 allowance);
 

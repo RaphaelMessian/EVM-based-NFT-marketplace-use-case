@@ -6,7 +6,7 @@ async function main() {
     [deployer, otherWallet, treasury] = signers;
 
     const approvalContractFactory = await ethers.getContractFactory(
-        "ApprovalContract"
+        "ContractApproval"
         );
     const approvalContract = await approvalContractFactory.deploy(
       {gasLimit: 1_000_000}

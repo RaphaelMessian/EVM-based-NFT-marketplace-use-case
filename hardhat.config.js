@@ -21,7 +21,7 @@ module.exports = {
       timeout: 2000000000,
       allowUnlimitedContractSize: true,
       // Your ECDSA account private key pulled from the .env file
-      accounts: [process.env.OPERATOR_KEY, process.env.OTHER_OPERATOR_KEY, process.env.FEE_COLLECTOR_KEY],
+      accounts: [process.env.OPERATOR_KEY, process.env.OTHER_OPERATOR_KEY, process.env.FEE_COLLECTOR_KEY, process.env.SECOND_FEE_COLLECTOR_KEY],
     },
     // previewnet: {
     //   // HashIO testnet endpoint from the TESTNET_ENDPOINT variable in the .env file //https://previewnet.hashio.io/api

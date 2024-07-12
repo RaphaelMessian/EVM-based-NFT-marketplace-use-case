@@ -1,5 +1,5 @@
-//The purpose of this script is to demonstrate how to create a fungible token with fractional fee using the IERC20
-//The token is created with a fractional fee of 10% for the feeCollector account
+//The purpose of this script is to demonstrate how to create a fungible token with fix fee using the IERC20
+//The token is created with a fixed fee of 1 hbars for the feeCollector account
 const {ethers} = require("hardhat");
 const { createTokenWithFees, mintToken, transferHbar } = require("../../../utils");
 const { Client, PrivateKey } = require("@hashgraph/sdk");
@@ -22,7 +22,7 @@ async function main() {
     const client = Client.forTestnet();
     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
     //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
-    const tokenId = await createTokenWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, process.env.FEE_COLLECTOR_KEY, false, true);
+    const tokenId = await createTokenWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, process.env.FEE_COLLECTOR_KEY, null, true, false);
     const tokenAddress = '0x' + tokenId.toSolidityAddress();
     console.log("Token created at address", tokenAddress);
 
@@ -89,6 +89,9 @@ async function main() {
     const approveContract = await tokenCreateContract.approveFromERC20(tokenAddress, otherWallet.address, 100e8, {gasLimit: 2_000_000});
     console.log("Approval tx hash", approveContract.hash);
 
+    //We need to transfer some hbar to the contract so that he can pay the fixed fee
+    const transferHbarTx = await transferHbar(client, process.env.OPERATOR_ID, tokenCreateAddress, 5);
+
     //Balance of the feeCollector and contract before transfer
     const feeCollectorBalanceBeforeTransfer = await ethers.provider.getBalance(feeCollector.address);
     console.log("Balance of feeCollector before the Transfer", feeCollectorBalanceBeforeTransfer.toString());
@@ -118,6 +121,7 @@ async function main() {
     const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(feeCollector.address);
     console.log("Token balance of fee collector after the transfer", contractTokenBalanceAfterTransfer.toString());
 
+ 
 }
 
 function delay(ms) {

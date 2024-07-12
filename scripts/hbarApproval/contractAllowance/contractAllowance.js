@@ -9,7 +9,7 @@ async function main() {
     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
 
     const approvalContractFactory = await ethers.getContractFactory(
-        "ApprovalContract"
+        "ContractApproval"
         );
     const approvalContract = await approvalContractFactory.deploy(
       {gasLimit: 1_000_000}

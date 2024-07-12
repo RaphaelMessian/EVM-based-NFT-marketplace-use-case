@@ -1,5 +1,4 @@
-const path = require('path')
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') })
+require('dotenv').config({ path: __dirname + '/.env' });
 
 const {
   AccountId,
@@ -10,7 +9,7 @@ const {
 } = require("@hashgraph/sdk");
 
 async function createEVMAccount() {
-  // console.log(process.env.OPERATOR_ID);
+  console.log(process.env.OPERATOR_ID);
   const operatorId = AccountId.fromString(process.env.OPERATOR_ID);
   const operatorKey = PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY);
 
@@ -27,8 +26,8 @@ async function createEVMAccount() {
   const evmAddress = publicKey.toEvmAddress();
   console.log(`Corresponding evm address: ${"0x" + evmAddress}`);
   const transferTx = new TransferTransaction()
-    .addHbarTransfer(operatorId, -5)
-    .addHbarTransfer(evmAddress, 5)
+    .addHbarTransfer(operatorId, -100)
+    .addHbarTransfer(evmAddress, 100)
     .freezeWith(client);
 
   const transferTxSign = await transferTx.sign(operatorKey);

@@ -34,8 +34,8 @@ async function transferHbar(client, senderId, receiverId, amount) {
 async function createToken(client, treasuryId, privateKey) {
 
   let tokenCreateTx = await new TokenCreateTransaction()
-    .setTokenName("MyToken")
-    .setTokenSymbol("MYT")
+    .setTokenName("MyFungibleToken")
+    .setTokenSymbol("MFT")
     .setTokenType(TokenType.FungibleCommon)
     .setDecimals(8)
     .setInitialSupply(0)
@@ -82,8 +82,8 @@ async function createTokenWithFees(client, treasuryId, privateKey, collectorFeeI
   if(isFixedFee) {
   fixedFee = new CustomFixedFee()
     .setAmount(1e8)
-    .denominatingTokenId(fixFeeToken)
     .setFeeCollectorAccountId(collectorFeeId)
+    .setDenominatingTokenId(fixFeeToken)
     .setAllCollectorsAreExempt(false);
   }
   if(isFractionalFee) {
@@ -119,6 +119,51 @@ async function createTokenWithFees(client, treasuryId, privateKey, collectorFeeI
 
   let signTx = await tokenCreateTx.sign(PrivateKey.fromStringECDSA(collectorFeeKey));
   let tokenCreateSubmit = await signTx.execute(client);
+  // console.log("- Executed");
+  let tokenCreateRx = await tokenCreateSubmit.getReceipt(client);
+  let tokenId = tokenCreateRx.tokenId;
+  return tokenId;
+}
+
+async function createTokenWithMultipleFees(client, treasuryId, privateKey, collectorFeeId, collectorFeeKey,
+   fixFeeToken, secondCollectorId, secondCollectorKey, secondFixFeeToken) {
+
+  const fixedFee = new CustomFixedFee()
+    .setAmount(1e8)
+    .setFeeCollectorAccountId(collectorFeeId)
+    .setDenominatingTokenId(fixFeeToken)
+    .setAllCollectorsAreExempt(false);
+
+  const secondFixedFee = new CustomFixedFee()
+    .setAmount(1e8)
+    .setFeeCollectorAccountId(secondCollectorId)
+    .setDenominatingTokenId(secondFixFeeToken)
+    .setAllCollectorsAreExempt(false);
+
+  const fractionalFee = new CustomFractionalFee()
+    .setFeeCollectorAccountId(collectorFeeId)
+    .setNumerator(1)
+    .setDenominator(10)
+    .setMin(1e8)
+    .setMax(10e8)
+
+  let tokenCreateTx = await new TokenCreateTransaction()
+    .setTokenName("MyMultipleFeesToken")
+    .setTokenSymbol("MMFT")
+    .setTokenType(TokenType.FungibleCommon)
+    .setDecimals(8)
+    .setInitialSupply(0)
+    .setTreasuryAccountId(treasuryId)
+    .setSupplyType(TokenSupplyType.Infinite)
+    .setSupplyKey(PrivateKey.fromStringECDSA(privateKey))
+    .setAdminKey(PrivateKey.fromStringECDSA(privateKey))
+    .setCustomFees([fixedFee,secondFixedFee, fractionalFee])
+    .setMaxTransactionFee(new Hbar(40))
+    .freezeWith(client);
+
+  let signTx = await tokenCreateTx.sign(PrivateKey.fromStringECDSA(collectorFeeKey));
+  let signTx2 = await signTx.sign(PrivateKey.fromStringECDSA(secondCollectorKey));
+  let tokenCreateSubmit = await signTx2.execute(client);
   // console.log("- Executed");
   let tokenCreateRx = await tokenCreateSubmit.getReceipt(client);
   let tokenId = tokenCreateRx.tokenId;
@@ -251,5 +296,6 @@ module.exports = {
     createToken,
     transferHbar,
     contractInfoFromMirrorNode,
-    createTokenWithFees
+    createTokenWithFees,
+    createTokenWithMultipleFees
 }
