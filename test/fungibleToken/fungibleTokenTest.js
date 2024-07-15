@@ -45,7 +45,7 @@ describe('FungibleToken Test Suite', function () {
           feeCollector.address, // feeCollector
           true, // isFractional
           true, // isFixed
-          1e8,  // amount for fixedFee
+          BigInt(1e8),  // amount for fixedFee
           '0x0000000000000000000000000000000000000000', //address for token of fixedFee, if set to 0x0, the fee will be in hbars
           true, // if true the fee will be in Hbar
           false, // if true use the current token for fixed fee
@@ -91,14 +91,14 @@ describe('FungibleToken Test Suite', function () {
         const balanceOfOW = await tokenInterface.balanceOf(otherWallet.address);
         const feeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(feeCollector.address);
         const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
-        expect(feeCollectorBalanceAfterTransfer.toString() === feeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of feeCollector should be increase by one');
-        expect(balanceOfOW.toString() === '90e8', 'Balance of otherWallet should be 90');
-        expect(contractTokenBalanceAfterTransfer.toString() === '10e8', 'Balance of contract should be 10');
+        expect(feeCollectorBalanceAfterTransfer === feeCollectorBalanceBeforeTransfer + BigInt(1e8), 'Balance of feeCollector should be increase by one');
+        expect(balanceOfOW === BigInt(90e8), 'Balance of otherWallet should be 90');
+        expect(contractTokenBalanceAfterTransfer === BigInt(10e8), 'Balance of contract should be 10');
       }).timeout(1000000);
   
-      it('should transfer a fungible token with Hbar Fix Fee (1Hbar) for the fee collector and a second fee collector, fractionnal fee of 10%', async function () {
+      it('should transfer a fungible token with Hbar Fix Fee (1Hbar) for the contract and a second fee collector, fractionnal fee of 10%', async function () {
         const params = {
-          feeCollector: feeCollector.address, // feeCollector
+          feeCollector: tokenCreateAddress, // feeCollector
           isFractionalFee: true, // isFractional
           isFixedFee: true, // isFixed
           feeAmount: 1e8,  // amount for fixedFee
@@ -151,13 +151,13 @@ describe('FungibleToken Test Suite', function () {
         const feeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(feeCollector.address);
         const secondFeeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(secondFeeCollector.address);
         const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
-        expect(feeCollectorBalanceAfterTransfer.toString() === feeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of feeCollector should be increase by one');
-        expect(secondFeeCollectorBalanceAfterTransfer.toString() === secondFeeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of secondFeeCollector should be increase by one');
-        expect(balanceOfOW.toString() === '90e8', 'Balance of otherWallet should be 90');
-        expect(contractTokenBalanceAfterTransfer.toString() === '10e8', 'Balance of contract should be 10');
+        expect(feeCollectorBalanceAfterTransfer === feeCollectorBalanceBeforeTransfer + BigInt(1e8), 'Balance of feeCollector should be increase by one');
+        expect(secondFeeCollectorBalanceAfterTransfer === secondFeeCollectorBalanceBeforeTransfer + BigInt(1e8), 'Balance of secondFeeCollector should be increase by one');
+        expect(balanceOfOW === BigInt(90e8), 'Balance of otherWallet should be 90');
+        expect(contractTokenBalanceAfterTransfer === BigInt(10e8), 'Balance of contract should be 10');
       }).timeout(1000000);
   
-      it('should transfer a fungible token with Hbar Fix Fee (1Hbar) for the fee collector and a 1 FTHTS for second fee collector, fractionnal fee of 10%', async function () {
+      it('should transfer a fungible token with Hbar Fix Fee (1Hbar) for the contract and a 1 FTHTS for second fee collector, fractionnal fee of 10%', async function () {
         const tokenIdForFixedfee = await createToken(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY);
         const tokenAddressForFixedFee = '0x' + tokenIdForFixedfee.toSolidityAddress();
         await mintToken(tokenIdForFixedfee, client, 100);
@@ -165,10 +165,10 @@ describe('FungibleToken Test Suite', function () {
         const associateTokenInterfaceFixFee = await ethers.getContractAt("IHRC719", tokenAddressForFixedFee)
         await associateTokenInterfaceFixFee.connect(secondFeeCollector).associate({gasLimit: 1_000_000,});
         const params = {
-          feeCollector: feeCollector.address, // feeCollector
+          feeCollector: tokenCreateAddress, // feeCollector
           isFractionalFee: true, // isFractional
           isFixedFee: true, // isFixed
-          feeAmount: 1e8,  // amount for fixedFee
+          feeAmount: BigInt(1e8),  // amount for fixedFee
           fixedFeeTokenAddress: '0x0000000000000000000000000000000000000000', //address for token of fixedFee, if set to 0x0, the fee will be in hbars
           useHbarsForPayment: true, // if true the fee will be in Hbar
           useCurrentTokenForPayment: false, // if true use the current token for fixed fee
@@ -218,10 +218,10 @@ describe('FungibleToken Test Suite', function () {
         const feeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(feeCollector.address);
         const secondFeeCollectorBalanceAfterTransfer = await fixFeeTokenInterface.balanceOf(secondFeeCollector.address);
         const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
-        expect(feeCollectorBalanceAfterTransfer.toString() === feeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of feeCollector should be increase by one');
-        expect(secondFeeCollectorBalanceAfterTransfer.toString() === secondFeeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of secondFeeCollector should be increase by one');
-        expect(balanceOfOW.toString() === '90e8', 'Balance of otherWallet should be 90');
-        expect(contractTokenBalanceAfterTransfer.toString() === '10e8', 'Balance of contract should be 10');
+        expect(feeCollectorBalanceAfterTransfer === feeCollectorBalanceBeforeTransfer + BigInt(BigInt(1e8)), 'Balance of feeCollector should be increase by one');
+        expect(secondFeeCollectorBalanceAfterTransfer === secondFeeCollectorBalanceBeforeTransfer + BigInt(1e8), 'Balance of secondFeeCollector should be increase by one');
+        expect(balanceOfOW === BigInt(90e8), 'Balance of otherWallet should be 90');
+        expect(contractTokenBalanceAfterTransfer === BigInt(10e8), 'Balance of contract should be 10');
       }).timeout(1000000);
     });
 
@@ -263,9 +263,9 @@ describe('FungibleToken Test Suite', function () {
         const balanceOfOW = await tokenInterface.balanceOf(otherWallet.address);
         const feeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(feeCollector.address);
         const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
-        expect(feeCollectorBalanceAfterTransfer.toString() === feeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of feeCollector should be increase by one');
-        expect(balanceOfOW.toString() === '90e8', 'Balance of otherWallet should be 90');
-        expect(contractTokenBalanceAfterTransfer.toString() === '10e8', 'Balance of contract should be 10');
+        expect(feeCollectorBalanceAfterTransfer === feeCollectorBalanceBeforeTransfer + BigInt(1e8), 'Balance of feeCollector should be increase by one');
+        expect(balanceOfOW === BigInt(90e8), 'Balance of otherWallet should be 90');
+        expect(contractTokenBalanceAfterTransfer === BigInt(10e8), 'Balance of contract should be 10');
       }).timeout(1000000);
 
       it('should transfer a fungible token with Hbar Fix Fee (1Hbar) for the fee collector and a second fee collector, fractionnal fee of 10%', async function () {
@@ -308,10 +308,10 @@ describe('FungibleToken Test Suite', function () {
         const feeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(feeCollector.address);
         const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
         const secondFeeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(secondFeeCollector.address);
-        expect(feeCollectorBalanceAfterTransfer.toString() === feeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of feeCollector should be increase by one');
-        expect(secondFeeCollectorBalanceAfterTransfer.toString() === secondFeeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of secondFeeCollector should be increase by one');
-        expect(balanceOfOW.toString() === '90e8', 'Balance of otherWallet should be 90');
-        expect(contractTokenBalanceAfterTransfer.toString() === '10e8', 'Balance of contract should be 10');
+        expect(feeCollectorBalanceAfterTransfer === feeCollectorBalanceBeforeTransfer + BigInt(1e8), 'Balance of feeCollector should be increase by one');
+        expect(secondFeeCollectorBalanceAfterTransfer === secondFeeCollectorBalanceBeforeTransfer + BigInt(1e8), 'Balance of secondFeeCollector should be increase by one');
+        expect(balanceOfOW === BigInt(90e8), 'Balance of otherWallet should be 90');
+        expect(contractTokenBalanceAfterTransfer === BigInt(10e8), 'Balance of contract should be 10');
       }).timeout(1000000);
 
       it('should transfer a fungible token with Hbar Fix Fee (1Hbar) for the fee collector and a 1 FTHTS for second fee collector, fractionnal fee of 10%', async function () {
@@ -353,7 +353,7 @@ describe('FungibleToken Test Suite', function () {
         await associateTokenInterface.connect(otherWallet).associate({gasLimit: 1_000_000});
         await tokenCreateContract.approveFromERC20(tokenAddress, otherWallet.address, 100e8, {gasLimit: 2_000_000});
         const erc20Interface = await ethers.getContractAt("IERC20", tokenAddressForFixedFee);
-        await erc20Interface.transfer(tokenCreateAddress, 1e8, {gasLimit: 1_000_000});
+        await erc20Interface.transfer(tokenCreateAddress, BigInt(1e8), {gasLimit: 1_000_000});
         const feeCollectorBalanceBeforeTransfer = await ethers.provider.getBalance(feeCollector.address);
         const secondFeeCollectorBalanceBeforeTransfer = await fixFeeTokenInterface.balanceOf(secondFeeCollector.address);
         const secondTransferTokenTx = await tokenInterface.connect(otherWallet).transferFrom(
@@ -369,10 +369,10 @@ describe('FungibleToken Test Suite', function () {
         const feeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(feeCollector.address);
         const contractTokenBalanceAfterTransfer = await tokenInterface.balanceOf(tokenCreateAddress);
         const secondFeeCollectorBalanceAfterTransfer = await fixFeeTokenInterface.balanceOf(secondFeeCollector.address);
-        expect(feeCollectorBalanceAfterTransfer.toString() === feeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of feeCollector should be increase by one');
-        expect(secondFeeCollectorBalanceAfterTransfer.toString() === secondFeeCollectorBalanceBeforeTransfer.toString() + 1e8, 'Balance of secondFeeCollector should be increase by one');
-        expect(balanceOfOW.toString() === '90e8', 'Balance of otherWallet should be 90');
-        expect(contractTokenBalanceAfterTransfer.toString() === '10e8', 'Balance of contract should be 10');
+        expect(feeCollectorBalanceAfterTransfer === feeCollectorBalanceBeforeTransfer + BigInt(1e8), 'Balance of feeCollector should be increase by one');
+        expect(secondFeeCollectorBalanceAfterTransfer === secondFeeCollectorBalanceBeforeTransfer + BigInt(1e8), 'Balance of secondFeeCollector should be increase by one');
+        expect(balanceOfOW === BigInt(90e8), 'Balance of otherWallet should be 90');
+        expect(contractTokenBalanceAfterTransfer === BigInt(10e8), 'Balance of contract should be 10');
       }).timeout(1000000);
     });
     

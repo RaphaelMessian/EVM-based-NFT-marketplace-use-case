@@ -31,6 +31,7 @@ contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
         bool useCurrentTokenForPayment;
         bool isMultipleFixedFee;
         address feeCollector2;
+        int64 secondfeeAmount;
         address secondFixedFeeTokenAddress;
         bool useHbarsForPaymentSecondFixFee;
         bool useCurrentTokenForPaymentSecondFixFee;
@@ -42,6 +43,11 @@ contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
         int64 feeAmount;
         address fixedFeeTokenAddress;
         bool useHbarsForPayment;
+        bool isMultipleRoyaltyFee;
+        address feeCollector2;
+        int64 secondfeeAmount;
+        address secondFixedFeeTokenAddress;
+        bool useHbarsForPaymentSecondFixFee;
     }
 
     function createNonFungibleTokenPublic(
@@ -145,17 +151,26 @@ contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
             }
         fixedFees[0] = IHederaTokenService.FixedFee(params.feeAmount, params.fixedFeeTokenAddress, params.useHbarsForPayment, params.useCurrentTokenForPayment, params.feeCollector);
             if(params.isMultipleFixedFee) {
-        fixedFees[1] = IHederaTokenService.FixedFee(params.feeAmount, params.secondFixedFeeTokenAddress, params.useHbarsForPaymentSecondFixFee, params.useCurrentTokenForPaymentSecondFixFee, params.feeCollector2);
+        fixedFees[1] = IHederaTokenService.FixedFee(params.secondfeeAmount, params.secondFixedFeeTokenAddress, params.useHbarsForPaymentSecondFixFee, params.useCurrentTokenForPaymentSecondFixFee, params.feeCollector2);
             }
         } else {
             fixedFees = new IHederaTokenService.FixedFee[](0);
         }
 
-        IHederaTokenService.RoyaltyFee[] memory royaltyFees = new IHederaTokenService.RoyaltyFee[](1);
+        IHederaTokenService.RoyaltyFee[] memory royaltyFees = new IHederaTokenService.RoyaltyFee[](2);
+
         if(royaltyParams.isRoyaltyFee) {
-             royaltyFees[0] = IHederaTokenService.RoyaltyFee(1, 10, royaltyParams.feeAmount, royaltyParams.fixedFeeTokenAddress, royaltyParams.useHbarsForPayment, royaltyParams.feeCollector);
+            if(royaltyParams.isMultipleRoyaltyFee) {
+                royaltyFees = new IHederaTokenService.RoyaltyFee[](2);
+            } else {
+                royaltyFees = new IHederaTokenService.RoyaltyFee[](1);
+            }
+        royaltyFees[0] = IHederaTokenService.RoyaltyFee(1, 10, royaltyParams.feeAmount, royaltyParams.fixedFeeTokenAddress, royaltyParams.useHbarsForPayment, royaltyParams.feeCollector);
+            if(royaltyParams.isMultipleRoyaltyFee) {
+        royaltyFees[1] = IHederaTokenService.RoyaltyFee(1, 10, royaltyParams.secondfeeAmount, royaltyParams.secondFixedFeeTokenAddress, royaltyParams.useHbarsForPaymentSecondFixFee, royaltyParams.feeCollector2);
+            }
         } else {
-             royaltyFees = new IHederaTokenService.RoyaltyFee[](0);
+            royaltyFees = new IHederaTokenService.RoyaltyFee[](0);
         }
 
         (int responseCode, address tokenAddress) =
@@ -231,11 +246,11 @@ contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {
     }
 
     
-    function transferFromERC721(address token, address sender, address recipient, uint256 amount) external {
-        IERC721(token).transferFrom(sender, recipient, amount);
+    function transferFromERC721(address token, address sender, address recipient, uint256 tokenId) external {
+        IERC721(token).transferFrom(sender, recipient, tokenId);
     }
 
-    function approveFromERC721(address token, address spender, uint256 amount) external {
-         IERC721(token).approve(spender, amount);
+    function approveFromERC721(address token, address spender, uint256 tokenId) external {
+         IERC721(token).approve(spender, tokenId);
     }
 }
