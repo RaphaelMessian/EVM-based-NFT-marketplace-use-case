@@ -283,6 +283,14 @@ async function contractInfoFromMirrorNode(contractAddress) {
   return response.data;
 }
 
+async function cryptoAllowanceMirrorNode(owner, spender) {
+  const response = await axios.get(
+      `https://${process.env.HEDERA_NETWORK}.mirrornode.hedera.com/api/v1/accounts/${owner}/allowances/crypto?spender.id=${spender}`
+  );
+  return response.data;
+
+}
+
 
 module.exports = {
     createNFT,
@@ -297,5 +305,6 @@ module.exports = {
     transferHbar,
     contractInfoFromMirrorNode,
     createTokenWithFees,
-    createTokenWithMultipleFees
+    createTokenWithMultipleFees,
+    cryptoAllowanceMirrorNode
 }

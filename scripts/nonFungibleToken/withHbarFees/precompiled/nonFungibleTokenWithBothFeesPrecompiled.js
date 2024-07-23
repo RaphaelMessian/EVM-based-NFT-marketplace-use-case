@@ -104,7 +104,7 @@ async function main() {
     //We also need to give approval to the contract to spend the Hbars for transfering the NFT
     //We will use the IHRC632 to approve the contract to spend the Hbars on behalf of the account
     const hbarApprovePublic = await ethers.getContractAt("IHRC632", otherWallet.address)
-    const approveContractHbar = await hbarApprovePublic.connect(otherWallet).hbarApprove(tokenCreateAddress, BigInt(100e18), {gasLimit: 2_000_000});
+    const approveContractHbar = await hbarApprovePublic.connect(otherWallet).hbarApprove(tokenCreateAddress, BigInt(100e8), {gasLimit: 2_000_000});
     console.log("Hbar approval tx hash", approveContractHbar.hash);
 
     //Balance of the feeCollector and contract before transfer
