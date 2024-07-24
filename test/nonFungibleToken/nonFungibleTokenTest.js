@@ -579,12 +579,16 @@ describe('NonFungibleToken Test Suite', function () {
     it.only('Hbar for fix fee and royalties fees and Fix Fee > amount traded when transfering an NFT', async function () {
         const client = Client.forTestnet();
         client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
+
+        //Get the contract id of the contract 
         const tokenCreateContractIdTx = await contractInfoFromMirrorNode(tokenCreateAddress);
         const tokenCreateContractId = tokenCreateContractIdTx.contract_id
         console.log("TokenCreateContractId", tokenCreateContractId);
+
+        //Create a NFT with a fix fee of 15Hbar for the fee collector and a royalty fee of 10% with a fallback fee of 2Hbar for the same fee collector
         const params = {
             feeCollector: feeCollector.address, // feeCollector
-            isFractionalFee: true, // isFractional
+            isFractionalFee: false, // isFractional
             isFixedFee: true, // isFixed
             feeAmount: 15e8,  // amount for fixedFee
             fixedFeeTokenAddress: '0x0000000000000000000000000000000000000000', //address for token of fixedFee, if set to 0x0, the fee will be in hbars
@@ -611,7 +615,7 @@ describe('NonFungibleToken Test Suite', function () {
             useHbarsForPaymentSecondFixFee: true,
             useCurrentTokenForPaymentSecondFixFee: false,
         }
-
+        //Create the token, the contrat will be the treasury of the token
         const createTokenTx = await tokenCreateContract.createNonFungibleTokenWithMultipleCustomFeesPublic(tokenCreateAddress, params, royaltyParams, { value: BigInt(35e18), gasLimit: 3_000_000,}); //30Hbar
         const txReceipt = await createTokenTx.wait();
         const tokenAddress = txReceipt.logs.filter(
@@ -626,8 +630,12 @@ describe('NonFungibleToken Test Suite', function () {
                 gasLimit: 1_000_000,
             }
         );
+        //associate the token with the first user
         const associateTokenInterfaceNFT = await ethers.getContractAt("IHRC719", tokenAddress)
         await associateTokenInterfaceNFT.associate({ gasLimit: 1_000_000, });
+
+        
+        //Transfer the NFT to the first user from the contract
         await tokenCreateContract.transferNFTsPublic(
                 tokenAddress,
                 [tokenCreateAddress],
@@ -637,13 +645,21 @@ describe('NonFungibleToken Test Suite', function () {
                 gasLimit: 1_000_000,
             }
         );
+
+        //No fees are involved in the transfer of the NFT because the transfer is from the treasury
+
+        //Associate the token with the second user
         const tokenInterface = await ethers.getContractAt("IERC721", tokenAddress);
         await associateTokenInterfaceNFT.connect(otherWallet).associate({ gasLimit: 1_000_000, });
-        // const feeCollectorBalanceBeforeTransfer = await ethers.provider.getBalance(feeCollector.address);
-        // const secondFeeCollectorBalanceFTBeforeTransfer = await erc20Interface.balanceOf(secondFeeCollector.address);
+
+        //Approve the transfer of the NFT by the first user to the contract
         await tokenInterface.approve(tokenCreateAddress, 1, {gasLimit: 1_000_000});
+
+        //Approve the transfer of Hbar by the second user to the contract in order to transfer the NFT with some Hbar
         const hbarApprovePublic = await ethers.getContractAt("IHRC632", otherWallet.address);
         await hbarApprovePublic.connect(otherWallet).hbarApprove(tokenCreateAddress, BigInt(100e8), {gasLimit: 2_000_000});
+
+        //Check the different allowances
         await delay(5000);
         const allowanceHbarOtherWaller = await cryptoAllowanceMirrorNode(process.env.OTHER_OPERATOR_ID, tokenCreateContractId);
         console.log("Hbar allowance of the otherWallet (0.0.2204234) to the contract", allowanceHbarOtherWaller);
@@ -651,6 +667,10 @@ describe('NonFungibleToken Test Suite', function () {
         console.log("Hbar allowance of the deployer (0.0.2203859) to the other wallet", allowanceHbarDeployerToOtherWallet);
         const allowanceHbar = await cryptoAllowanceMirrorNode(process.env.OPERATOR_ID, tokenCreateContractId);
         console.log("Hbar allowance of the deployer (0.0.2203859) to the contract", allowanceHbar);
+
+
+        //Prepare the transfer of the NFT, the NFT will be transfered from the first user to the second user and the second user will pay 10Hbar
+        //The amount exchange is less than the fix fee so the sender will have to pay the difference
         let cryptoTransfers = {
             transfers: [
             {
@@ -680,6 +700,7 @@ describe('NonFungibleToken Test Suite', function () {
             },
         ];
 
+        //Transfer the NFT from the first user to the second user using the contract
         const transferTokenToOWTx = await tokenCreateContract.connect(otherWallet).cryptoTransferPublic(
         cryptoTransfers,
         tokenTransferList,
@@ -688,12 +709,9 @@ describe('NonFungibleToken Test Suite', function () {
             }
         );
         console.log("Token transfer tx hash", transferTokenToOWTx.hash);
-        // const feeCollectorBalanceAfterTransfer = await ethers.provider.getBalance(feeCollector.address);
-        // const secondFeeCollectorFTBalanceAfterTransfer = await erc20Interface.balanceOf(secondFeeCollector.address)
+
         const otherWalletTokenBalanceAfterTransfer = await tokenInterface.balanceOf(otherWallet.address);
         expect(otherWalletTokenBalanceAfterTransfer.toString()).to.equal("1");
-        // expect(secondFeeCollectorBalanceFTBeforeTransfer === secondFeeCollectorFTBalanceAfterTransfer + BigInt(1e8), 'Balance of contract should be 1FT HTS from the fixfee');
-        // expect(feeCollectorBalanceBeforeTransfer === feeCollectorBalanceAfterTransfer + BigInt(16e8), 'Balance of feeCollector should be increase by 16Hbar from the fallbackfee (15) and the fixfee (1)');
     }).timeout(1000000);
 });
 
