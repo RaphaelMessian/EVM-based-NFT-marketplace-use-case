@@ -19,7 +19,7 @@ async function main() {
     //const tokenCreateCustomContract = await ethers.getContractAt("FungiblePrecompiled", "0x1f61337E6b8837E75F64466b9618C986f3e571B9");
 
     //Create a fungible token with hedera sdk, you need to instantiate a client to correct network
-    const client = Client.forTestnet();
+    const client = Client.forName(process.env.HEDERA_NETWORK); 
     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
     //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
     const tokenIdForFixedfee = await createToken(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY);

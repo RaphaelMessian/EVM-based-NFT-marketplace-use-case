@@ -20,7 +20,7 @@ async function main() {
     console.log("TokenCreateContract deployed to:", tokenCreateAddress);
 
     //Create a fungible token with hedera sdk, you need to instantiate a client to correct network
-    const client = Client.forTestnet();
+    const client = Client.forName(process.env.HEDERA_NETWORK); 
     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
      //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
     const tokenId = await createNFTWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, true, true);

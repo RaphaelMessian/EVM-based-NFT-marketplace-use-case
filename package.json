@@ -13,7 +13,7 @@
     "hardhat": "^2.22.5"
   },
   "dependencies": {
-    "@hashgraph/sdk": "^2.47.0",
+    "@hashgraph/sdk": "^2.51.0",
     "@openzeppelin/contracts": "^5.0.2",
     "chai": "^4.3.7",
     "dotenv": "^16.4.5"

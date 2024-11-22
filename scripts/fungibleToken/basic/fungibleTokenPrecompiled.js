@@ -1,4 +1,4 @@
-//The purpose of this script is to demonstrate who to create - mint - transfer and listen to events created by HTS using precompiled contract.
+//The purpose of this script is to demonstrate how to create - mint - transfer and listen to events created by HTS using precompiled contract.
 const {ethers} = require("hardhat");
 
 

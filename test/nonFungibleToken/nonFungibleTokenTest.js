@@ -32,7 +32,7 @@ describe('NonFungibleToken Test Suite', function () {
 
     it('should transfer a non fungible token with Hbar Fix Fee (1Hbar) for the fee collector and a 1 FTHTS for second fee collector, royalties fee of 10% for the feeCollector', async function () {
        //Create a fungible token with hedera sdk, you need to instantiate a client to correct network
-        const client = Client.forTestnet();
+        const client = Client.forName(process.env.HEDERA_NETWORK); 
         client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
         //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
         const tokenIdForFixedfee = await createToken(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY);
@@ -156,7 +156,7 @@ describe('NonFungibleToken Test Suite', function () {
       }).timeout(1000000);
 
     it('should transfer a non fungible token with Hbar Fix Fee (1Hbar) for the fee collector and a 1 FTHTS for second fee collector, royalties fee of 10% for the fee collector and the second fee collector', async function () {
-        const client = Client.forTestnet();
+        const client = Client.forName(process.env.HEDERA_NETWORK); 
         client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
         //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
         const tokenIdForFixedfee = await createToken(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY);
@@ -280,7 +280,7 @@ describe('NonFungibleToken Test Suite', function () {
     }).timeout(1000000);
 
     it('should transfer a non fungible token with Hbar Fix Fee 3Hbar for the fee collector and a 1Hbar for second fee collector, no value exchange so fallback fee should be triggered (2hbar for feeC and 1Hbar for feeC2)', async function () {
-        const client = Client.forTestnet();
+        const client = Client.forName(process.env.HEDERA_NETWORK); 
         client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
         const params = {
             feeCollector: feeCollector.address, // feeCollector
@@ -355,7 +355,7 @@ describe('NonFungibleToken Test Suite', function () {
     }).timeout(1000000);
 
     it('should transfer a non fungible token with Hbar Fix Fee 3Hbar for the fee collector and a 1Fungible HTS for second fee collector, no value exchange so fallback fee should be triggered (2Fungible HTS for feeC and 1Fungible HTS for feeC2)', async function () {
-        const client = Client.forTestnet();
+        const client = Client.forName(process.env.HEDERA_NETWORK); 
         client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
         //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
         const tokenIdForFixedfee = await createToken(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY);
@@ -446,7 +446,7 @@ describe('NonFungibleToken Test Suite', function () {
     }).timeout(1000000);
 
     // it('Fix Fee > amount traded', async function () {
-    //     const client = Client.forTestnet();
+    //     const client = Client.forName(process.env.HEDERA_NETWORK); 
     //     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
     //     const tokenCreateContractIdTx = await contractInfoFromMirrorNode(tokenCreateAddress);
     //     const tokenCreateContractId = tokenCreateContractIdTx.contract_id
@@ -577,7 +577,7 @@ describe('NonFungibleToken Test Suite', function () {
     // }).timeout(1000000);
 
     it.only('Hbar for fix fee and royalties fees and Fix Fee > amount traded when transfering an NFT', async function () {
-        const client = Client.forTestnet();
+        const client = Client.forName(process.env.HEDERA_NETWORK); 
         client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
 
         //Get the contract id of the contract 
@@ -604,15 +604,15 @@ describe('NonFungibleToken Test Suite', function () {
         
         const royaltyParams = {
             feeCollector: feeCollector.address,
-            isRoyaltyFee: true,
-            feeAmount: 2e8,
+            isRoyaltyFee: false,
+            feeAmount: 0,
             fixedFeeTokenAddress: "0x0000000000000000000000000000000000000000",
-            useHbarsForPayment: true,
+            useHbarsForPayment: false,
             isMultipleRoyaltyFee: false, // if true mutliple fixed fee
             feeCollector2: secondFeeCollector.address,
             secondfeeAmount: 0,
             secondFixedFeeTokenAddress: "0x0000000000000000000000000000000000000000", //address for token of second fixedFee, if set to 0x0, the fee will be in hbars
-            useHbarsForPaymentSecondFixFee: true,
+            useHbarsForPaymentSecondFixFee: false,
             useCurrentTokenForPaymentSecondFixFee: false,
         }
         //Create the token, the contrat will be the treasury of the token
@@ -634,7 +634,7 @@ describe('NonFungibleToken Test Suite', function () {
         const associateTokenInterfaceNFT = await ethers.getContractAt("IHRC719", tokenAddress)
         await associateTokenInterfaceNFT.associate({ gasLimit: 1_000_000, });
 
-        
+
         //Transfer the NFT to the first user from the contract
         await tokenCreateContract.transferNFTsPublic(
                 tokenAddress,
@@ -661,12 +661,12 @@ describe('NonFungibleToken Test Suite', function () {
 
         //Check the different allowances
         await delay(5000);
-        const allowanceHbarOtherWaller = await cryptoAllowanceMirrorNode(process.env.OTHER_OPERATOR_ID, tokenCreateContractId);
-        console.log("Hbar allowance of the otherWallet (0.0.2204234) to the contract", allowanceHbarOtherWaller);
-        const allowanceHbarDeployerToOtherWallet = await cryptoAllowanceMirrorNode(process.env.OPERATOR_ID, process.env.OTHER_OPERATOR_ID);
-        console.log("Hbar allowance of the deployer (0.0.2203859) to the other wallet", allowanceHbarDeployerToOtherWallet);
-        const allowanceHbar = await cryptoAllowanceMirrorNode(process.env.OPERATOR_ID, tokenCreateContractId);
-        console.log("Hbar allowance of the deployer (0.0.2203859) to the contract", allowanceHbar);
+        // const allowanceHbarOtherWaller = await cryptoAllowanceMirrorNode(process.env.OTHER_OPERATOR_ID, tokenCreateContractId);
+        // console.log("Hbar allowance of the otherWallet (0.0.2204234) to the contract", allowanceHbarOtherWaller);
+        // const allowanceHbarDeployerToOtherWallet = await cryptoAllowanceMirrorNode(process.env.OPERATOR_ID, process.env.OTHER_OPERATOR_ID);
+        // console.log("Hbar allowance of the deployer (0.0.2203859) to the other wallet", allowanceHbarDeployerToOtherWallet);
+        // const allowanceHbar = await cryptoAllowanceMirrorNode(process.env.OPERATOR_ID, tokenCreateContractId);
+        // console.log("Hbar allowance of the deployer (0.0.2203859) to the contract", allowanceHbar);
 
 
         //Prepare the transfer of the NFT, the NFT will be transfered from the first user to the second user and the second user will pay 10Hbar

@@ -5,7 +5,7 @@ const { Client, PrivateKey } = require("@hashgraph/sdk");
 async function main() {
     signers = await ethers.getSigners(); 
     [deployer, otherWallet, feeCollector] = signers;
-    const client = Client.forTestnet();
+    const client = Client.forName(process.env.HEDERA_NETWORK); 
     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
 
     const approvalContractFactory = await ethers.getContractFactory(

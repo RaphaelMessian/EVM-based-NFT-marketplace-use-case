@@ -5,15 +5,16 @@ const {
   PrivateKey,
   Client,
   TransferTransaction,
-  TransactionReceiptQuery
+  TransactionReceiptQuery,
+  TokenAirdropTransaction
 } = require("@hashgraph/sdk");
 
 async function createEVMAccount() {
   console.log(process.env.OPERATOR_ID);
-  const operatorId = AccountId.fromString(process.env.OPERATOR_ID);
-  const operatorKey = PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY);
+  const operatorId = AccountId.fromString("0.0.1054");
+  const operatorKey = PrivateKey.fromStringECDSA("0x4f1535dcc5cfdc3d197ebcef6e1d7749bd74e9563a5fdeb90e971cdf4b641926");
 
-  const client = Client.forTestnet().setOperator(operatorId, operatorKey);
+  const client = Client.forPreviewnet().setOperator(operatorId, operatorKey);
 
   const privateKey = PrivateKey.generateECDSA();
   console.log(`Private key DER: ${privateKey.toStringDer()}`);

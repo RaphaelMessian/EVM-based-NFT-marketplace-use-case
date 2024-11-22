@@ -1,4 +1,4 @@
-//The purpose of this script is to demonstrate who to create - mint - transfer and listen to events created by HTS using precompiled contract.
+//The purpose of this script is to demonstrate how to create - mint - transfer and listen to events created by HTS using precompiled contract.
 const {ethers} = require("hardhat");
 const { createNFT, mintNFT } = require("../utils.js");
 const { Client, PrivateKey } = require("@hashgraph/sdk");
@@ -9,7 +9,7 @@ async function main() {
     [deployer, otherWallet, treasury] = signers;
 
     //Create a fungible token with hedera sdk, you need to instantiate a client to correct network
-    const client = Client.forTestnet();
+    const client = Client.forName(process.env.HEDERA_NETWORK); 
     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
      //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
     const tokenId = await createNFT(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY);

@@ -6,7 +6,19 @@ const { TokenCreateTransaction, TokenType, TokenSupplyType,TokenInfoQuery, Accou
      PrivateKey,
      CustomFixedFee,
      CustomFractionalFee,
-     AccountId} = require("@hashgraph/sdk");
+     AccountId,
+     AccountCreateTransaction} = require("@hashgraph/sdk");
+
+async function createAccount(client, privateKey, automaticAssociation) {
+    const newAccount = new AccountCreateTransaction()
+      .setKey(privateKey)
+      .setInitialBalance(new Hbar(10))
+      .setMaxAutomaticTokenAssociations(automaticAssociation)
+      .freezeWith(client);
+      const txResponse = await newAccount.execute(client);
+      const receipt = await txResponse.getReceipt(client);
+      return receipt.accountId;
+}
 
 async function tokenAssociate(client, accountId, tokenIds, accountKey) {
     const tokenAssociateTx = await new TokenAssociateTransaction()
@@ -43,6 +55,7 @@ async function createToken(client, treasuryId, privateKey) {
     .setSupplyType(TokenSupplyType.Infinite)
     .setSupplyKey(PrivateKey.fromStringECDSA(privateKey))
     .setAdminKey(PrivateKey.fromStringECDSA(privateKey))
+    .setFreezeKey(PrivateKey.fromStringECDSA(privateKey))
     .setMaxTransactionFee(new Hbar(40))
     .freezeWith(client);
 
@@ -207,6 +220,7 @@ async function createNFTWithFees(client, treasuryId, privateKey, collectorFeeId,
     .setSupplyType(TokenSupplyType.Infinite)
     .setSupplyKey(PrivateKey.fromStringECDSA(privateKey))
     .setAdminKey(PrivateKey.fromStringECDSA(privateKey))
+    .setMaxTransactionFee(new Hbar(40))
     if(isRoyalties) {
       tokenCreateTx.setCustomFees([royaltiesFee]);
     };
@@ -293,6 +307,7 @@ async function cryptoAllowanceMirrorNode(owner, spender) {
 
 
 module.exports = {
+    createAccount,
     createNFT,
     mintToken,
     tokenQuery,

@@ -2,9 +2,9 @@
 pragma solidity >=0.5.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-import "../precompile/hedera-token-service/HederaTokenService.sol";
-import "../precompile/hedera-token-service/ExpiryHelper.sol";
-import "../precompile/hedera-token-service/KeyHelper.sol";
+import "../system-contracts/hedera-token-service/HederaTokenService.sol";
+import "../system-contracts/hedera-token-service/ExpiryHelper.sol";
+import "../system-contracts/hedera-token-service/KeyHelper.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract NonFungiblePrecompiled is HederaTokenService, ExpiryHelper, KeyHelper {

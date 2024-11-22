@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import "../precompile/hedera-account-service/HederaAccountService.sol";
-import "../precompile/hedera-token-service/HederaTokenService.sol";
+import "../system-contracts/hedera-account-service/HederaAccountService.sol";
+import "../system-contracts/hedera-token-service/HederaTokenService.sol";
 
 contract ContracApproval is HederaAccountService, HederaTokenService {
     event ResponseCode(int responseCode);

@@ -2,10 +2,10 @@
 pragma solidity >=0.5.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-import "../precompile/hedera-token-service/HederaTokenService.sol";
-import "../precompile/hedera-account-service/HederaAccountService.sol";
-import "../precompile/hedera-token-service/ExpiryHelper.sol";
-import "../precompile/hedera-token-service/KeyHelper.sol";
+import "../system-contracts/hedera-token-service/HederaTokenService.sol";
+import "../system-contracts/hedera-account-service/HederaAccountService.sol";
+import "../system-contracts/hedera-token-service/ExpiryHelper.sol";
+import "../system-contracts/hedera-token-service/KeyHelper.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract FungiblePrecompiled is HederaTokenService, HederaAccountService, ExpiryHelper, KeyHelper {
@@ -14,13 +14,14 @@ contract FungiblePrecompiled is HederaTokenService, HederaAccountService, Expiry
     string symbol = "tokenSymbol";
     string memo = "memo";
     int64 initialTotalSupply = 0;
-    int64 maxSupply = 10000e8;
+    int64 maxSupply = 0;
     int32 decimals = 8;
     bool freezeDefaultStatus = false;
 
     event ResponseCode(int responseCode);
     event CreatedToken(address tokenAddress);
     event MintedToken(int64 newTotalSupply, int64[] serialNumbers);
+    event TokenType(int32 tokenType);
     
     struct FixFeeParams {
         address feeCollector;
@@ -50,7 +51,7 @@ contract FungiblePrecompiled is HederaTokenService, HederaAccountService, Expiry
         );
 
         IHederaTokenService.HederaToken memory token = IHederaTokenService.HederaToken(
-            name, symbol, treasury, memo, true, maxSupply, freezeDefaultStatus, keys, expiry
+            name, symbol, treasury, memo, false, maxSupply, freezeDefaultStatus, keys, expiry
         );
         
         (int responseCode, address tokenAddress) =
@@ -213,5 +214,16 @@ contract FungiblePrecompiled is HederaTokenService, HederaAccountService, Expiry
 
     function approveHbarTransfer( address spender, int256 amount) external returns (int) {
         return HederaAccountService.hbarApprove(address(this), spender, amount);
+    }
+
+    function getTokenTypePublic(address token) public returns (int64 responseCode, int32 tokenType) {
+        (responseCode, tokenType) = HederaTokenService.getTokenType(token);
+        emit ResponseCode(responseCode);
+
+        if (responseCode != HederaResponseCodes.SUCCESS) {
+            revert();
+        }
+
+        emit TokenType(tokenType);
     }
 }
