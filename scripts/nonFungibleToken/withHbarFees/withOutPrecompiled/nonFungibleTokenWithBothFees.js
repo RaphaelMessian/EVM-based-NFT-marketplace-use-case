@@ -23,7 +23,7 @@ async function main() {
     const client = Client.forName(process.env.HEDERA_NETWORK); 
     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
      //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
-    const tokenId = await createNFTWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, true, true);
+    const tokenId = await createNFTWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, null, true, true);
     const tokenAddress = '0x' + tokenId.toSolidityAddress();
     console.log("Token created at address", tokenAddress);  
     

@@ -73,7 +73,7 @@ async function main() {
       false, // if true the fee will be in Hbar
       false, // if true use the current token for fixed fee
       {
-        value: "30000000000000000000", // = 30 hbars
+        value: "20000000000000000000", // = 30 hbars
         gasLimit: 1_000_000,
       }
     ); 

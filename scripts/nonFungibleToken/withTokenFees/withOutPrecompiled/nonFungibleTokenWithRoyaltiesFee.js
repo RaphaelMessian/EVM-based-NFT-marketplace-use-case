@@ -41,7 +41,7 @@ async function main() {
     console.log("Token associated to account tx hash", associateFTokenWithFeeCollectorTx.hash);
 
     //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
-    const tokenId = await createNFTWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, tokenIdForFixedfee, true, false);
+    const tokenId = await createNFTWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, tokenIdForFixedfee, true, false, process.env.FEE_COLLECTOR_KEY);
     const tokenAddress = '0x' + tokenId.toSolidityAddress();
     console.log("Token created at address", tokenAddress);
 

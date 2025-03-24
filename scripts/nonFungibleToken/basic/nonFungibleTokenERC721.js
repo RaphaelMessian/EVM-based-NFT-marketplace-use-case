@@ -1,6 +1,6 @@
 //The purpose of this script is to demonstrate how to create - mint - transfer and listen to events created by HTS using precompiled contract.
 const {ethers} = require("hardhat");
-const { createNFT, mintNFT } = require("../utils.js");
+const { createNFT, mintNFT } = require("../../utils.js");
 const { Client, PrivateKey } = require("@hashgraph/sdk");
 
 
@@ -50,7 +50,7 @@ async function main() {
       otherWallet.address,
       1,
       {
-        gasLimit: 1_000_000,
+        gasLimit: 50_000,
       }
     );
     console.log("Token transfer tx hash", transferTokenTx.hash);

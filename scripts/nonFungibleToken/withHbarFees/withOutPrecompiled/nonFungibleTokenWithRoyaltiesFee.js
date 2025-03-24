@@ -3,7 +3,7 @@
 //the treasury and the supply key is the deployer
 const {ethers} = require("hardhat");
 const { createNFTWithFees, mintNFT } = require("./../../../utils.js");
-const { Client, PrivateKey } = require("@hashgraph/sdk");
+const { Client, PrivateKey, TokenId } = require("@hashgraph/sdk");
 
 
 async function main() {
@@ -23,7 +23,7 @@ async function main() {
     const client = Client.forName(process.env.HEDERA_NETWORK); 
     client.setOperator(process.env.OPERATOR_ID, PrivateKey.fromStringECDSA(process.env.OPERATOR_KEY));
      //Create a fungible token with hashgraph sdk, deployer is admin, supply and treasury
-    const tokenId = await createNFTWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, true, false);
+    const tokenId = await createNFTWithFees(client, process.env.OPERATOR_ID, process.env.OPERATOR_KEY, process.env.FEE_COLLECTOR_ID, null, true, false);
     const tokenAddress = '0x' + tokenId.toSolidityAddress();
     console.log("Token created at address", tokenAddress);  
     

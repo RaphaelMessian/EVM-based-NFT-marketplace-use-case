@@ -18,7 +18,6 @@ async function main() {
   console.log("isAuthorizedTestContract deployed to:", isAuthorizedAddress);
 
   const signature = await deployer.signMessage(messageToSign);
-  // expect(signature.slice(2).length).to.eq(65 * 2); // 65 bytes ECDSA signature
 
   const correctSignerReceipt = await (
     await isAuthorizedContract.isAuthorizedRawPublic(
