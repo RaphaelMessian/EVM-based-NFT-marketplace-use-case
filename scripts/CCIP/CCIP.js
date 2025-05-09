@@ -1,10 +1,9 @@
-//The purpose of this script is to demonstrate transfer some CCOP-BnM tokens from Hedera to Sepolia using CCIP.
+//The purpose of this script is to transfer some CCIP-BnM tokens from Hedera to Sepolia using CCIP.
 const {ethers} = require("hardhat");
-
 
 async function main() {
     signers = await ethers.getSigners(); 
-    [deployer, otherWallet, treasury] = signers;
+    [deployer] = signers;
 
     //router address on Hedera
     const routerAddress = "0x802C5F84eAD128Ff36fD6a3f8a418e339f467Ce4";
@@ -58,7 +57,7 @@ async function main() {
     const receiverAddress = "0x208B15dab9903be8d34336d0B7f930E5f0a76eC5"; // Address of the receiver on Sepolia
 
     //you can then transfer some token 
-    const transferToken = await tokenTransferorContract.transferTokensPayLINK("16015286601757825753", receiverAddress, CCIPBnMTokenAddress, 1000000000000000, {gasLimit: 1_000_000});
+    const transferToken = await tokenTransferorContract.transferTokensPayLINK(sepoliaIdDestinationChain, receiverAddress, CCIPBnMTokenAddress, 1000000000000000, {gasLimit: 1_000_000});
     console.log("transferToken:", transferToken.hash);
 
 }
